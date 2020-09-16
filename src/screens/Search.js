@@ -2,19 +2,25 @@ import React,{useState} from 'react';
 import { StyleSheet, Text, View,ScrollView,TextInput,FlatList,ActivityIndicator} from 'react-native';
 import {Ionicons} from '@expo/vector-icons'
 import MiniCard from '../components/MiniCard'
-const SearchScreen = ()=>{
+import Constant from 'expo-constants'
+import {useSelector,useDispatch} from 'react-redux'
+import {useTheme} from '@react-navigation/native'
+const SearchScreen = ({navigation})=>{
+    const {colors} = useTheme()
+    const mycolor = colors.iconColor
     const [value,setValue] = useState("")
-    //https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=10&q=songs&type=video&key=AIzaSyBdjAqUGpVlP2FkqV8NRCeJpXrXW6cxg3I
-    
-    const [minicardData,setMiniCard] = useState([])
+    const dispatch = useDispatch()
+    const miniCardData = useSelector(state=>{
+        return state.cardData
+    })
     const [loading,setLoading] = useState(false)
     const fetchData = ()=>{
         setLoading(true)
-        fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=10&q=${value}&type=video&key=AIzaSyBdjAqUGpVlP2FkqV8NRCeJpXrXW6cxg3I`)
+        fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=10&q=${value}&type=video&key=YOUTUBE_API_KEY`)
         .then(res=>res.json())
         .then(data=>{
             setLoading(false)
-            setMiniCard(data.items)
+            dispatch({type:"add",payload:data.items})
         })
     }
     
@@ -25,10 +31,16 @@ const SearchScreen = ()=>{
                 padding:5,
                 justifyContent:"space-around",
                 elevation:4,
-                backgroundColor:"white"
+                backgroundColor:"white",
+                marginTop:Constant.statusBarHeight,
+                backgroundColor:colors.headerColor
 
             }}>
-                <Ionicons name="md-arrow-back" size={32} />
+                <Ionicons 
+                    style={{color:mycolor}}
+                    name="md-arrow-back" size={32} 
+                    onPress={()=>navigation.goBack()}
+                />
                 <TextInput 
                     onChangeText={(text)=>setValue(text)}
                     style={{
@@ -37,7 +49,9 @@ const SearchScreen = ()=>{
                     }}
                     value={value}
                 />
-                <Ionicons name="md-send" size={32}
+                <Ionicons 
+                    style={{color:mycolor}}
+                    name="md-send" size={32}
                     onPress = {()=>{fetchData()}}
                 />
             </View>
@@ -50,7 +64,7 @@ const SearchScreen = ()=>{
         }
         
         <FlatList 
-            data = {minicardData}
+            data = {miniCardData}
             renderItem={({item})=>{
                 return <MiniCard 
                 videoId={item.id.videoId}
